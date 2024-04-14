@@ -1,0 +1,126 @@
+"""С клавиатуры вводится два числа K и N. Квадратная матрица А(N,N), состоящая из 4-х равных по размерам подматриц, B,C,D,E заполняется случайным образом целыми числами в интервале [-10,10].
+Для тестирования использовать не случайное заполнение, а целенаправленное. Для простоты все индексы в подматрицах относительные. Библиотечными методами пользоваться нельзя.
+D  Е
+С  В
+Каждая из матриц B, C, D, E имеет вид:
+       4
+    3     1
+       2
+Вариант10. Формируется матрица F следующим образом: если в С количество минимальных чисел в нечетных столбцах в области 2 больше, чем количество максимальных чисел в четных строках в области 1,
+то поменять в С симметрично области 1 и 2 местами, иначе С и Е поменять местами несимметрично.При этом матрица А не меняется. После чего вычисляется выражение: A*А+(K*AT).
+Выводятся по мере формирования А, F и все матричные операции последовательно.?"""
+
+import random
+
+def generate_matrix(N):
+    """
+    Функция создания матрицы A из подматриц B, C, D, E.
+    """
+    def generate_submatrix():
+        """
+        Функция создания подматрицы с заданным видом.
+        """
+        return [[4], [3, 1], [2]]
+    # Генерация подматриц
+    B = generate_submatrix()
+    C = generate_submatrix()
+    D = generate_submatrix()
+    E = generate_submatrix()
+    
+    # Создание пустой матрицы A
+    A = [[0]*N for _ in range(N)]
+    
+    # Размер подматрицы
+    sub_size = len(B)
+
+    # Заполнение матрицы A подматрицами B, C, D, E
+    for i in range(sub_size):
+        for j in range(sub_size):
+            A[i][j + sub_size] = D[i][j] if j < len(D[i]) else 0
+            A[i + sub_size][j + sub_size] = B[i][j] if j < len(B[i]) else 0
+            A[i + sub_size][j] = C[i][j] if j < len(C[i]) else 0
+            A[i][j] = E[i][j] if j < len(E[i]) else 0
+    
+    return A
+
+def transform_matrix(C, E):
+    """
+    Функция трансформации матриц C и E в F в соответствии с условиями задачи.
+    """
+    # Считаем количества минимальных и максимальных элементов
+    min_count, max_count = 0, 0
+    for i in range(len(C)):
+        for j in range(len(C[i])):
+            if j % 2 == 0 and C[i][j] == 2:  # Нечетные столбцы и область 2
+                min_count += 1
+            if i % 2 != 0 and C[i][j] == 3:  # Четные строки и область 1
+                max_count += 1
+    
+    if min_count > max_count:
+        # Поменять в C симметрично области 1 и 2 местами
+        for i in range(len(C)):
+            for j in range(len(C[i])):
+                if C[i][j] == 2:
+                    C[i][j] = 3
+                elif C[i][j] == 3:
+                    C[i][j] = 2
+        return C
+    else:
+        # Поменять C и E местами несимметрично
+        return E
+
+def matrix_multiplication(A, B):
+    """
+    Функция умножения матриц A и B без использования библиотечных методов.
+    """
+    result = [[0] * len(B[0]) for _ in range(len(A))]
+    for i in range(len(A)):
+        for j in range(len(B[0])):
+            for k in range(len(B)):
+                result[i][j] += A[i][k] * B[k][j]
+    return result
+
+def transpose_matrix(matrix):
+    """
+    Функция транспонирования матрицы без использования библиотечных методов.
+    """
+    transposed = [[matrix[j][i] for j in range(len(matrix))] for i in range(len(matrix[0]))]
+    return transposed
+
+# Ввод значений K и N
+K = int(input("Введите K: "))
+N = int(input("Введите N: "))
+
+# Генерация исходной матрицы A
+A = generate_matrix(N)
+
+# Формирование матрицы F
+C = [row[:N//2] for row in A[N//2:]]  # Подматрица C
+E = [row[:N//2] for row in A[:N//2]]  # Подматрица E
+F = transform_matrix(C, E)
+
+# Транспонирование матрицы A
+AT = transpose_matrix(A)
+
+# Вычисление A*A + (K*AT)
+AA = matrix_multiplication(A, A)
+KAT = [[K * j for j in i] for i in AT]
+result_matrix = matrix_multiplication(AA, KAT)
+
+# Последовательный вывод матриц A, F и всех операций
+print("Матрица A:")
+for row in A:
+    print(row)
+print("\nМатрица F:")
+for row in F:
+    print(row)
+print("\nМатрица AA:")
+for row in AA:
+    print(row)
+print("\nМатрица KAT:")
+for row in KAT:
+    print(row)
+print("\nРезультат (A*A + (K*AT)):")
+for row in result_matrix:
+    print(row)
+
